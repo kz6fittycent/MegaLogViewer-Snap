@@ -1,0 +1,12 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=MegaLogViewer
+GenericName=MegaLogViewer
+Comment=A snap for MegaLogViewer
+Exec=megalogviewer
+Icon=${SNAP}/meta/gui/megalogviewer.png
+Terminal=false
+Type=Application
+StartupNotify=false
+Categories=Application;
+Keywords=megalogviewer;
