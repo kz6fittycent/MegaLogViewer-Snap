@@ -1,5 +1,5 @@
 name: megalogviewer
-version: 4.4.43
+adopt-info: megalogviewer
 summary: MegaLogViewer MegaSquirt Edition (UNOFFICIAL)
 description: |
   MegaLogViewer MegaSquirt Edition
@@ -41,20 +41,27 @@ apps:
       JRE_HOME: $SNAP/usr/lib/jvm/java-11-openjdk-amd64/jre
       
 parts:
-  tool:
+  megalogviewer:
     plugin: nil
     override-build: |
+      TAR=$(curl -s "http://www.efianalytics.com/MegaLogViewer/download/" | grep "tar.gz" | head -n1 | cut -d '"' -f2)
       mkdir -p BUILD
       cd BUILD/
-      wget -O megalogviewer.tar.gz http://www.efianalytics.com/MegaLogViewer/download/MegaLogViewer_v4.4.43.tar.gz
+      wget -O megalogviewer.tar.gz http://www.efianalytics.com/MegaLogViewer/download/${TAR}
       tar -xzvf megalogviewer.tar.gz
       rm megalogviewer.tar.gz
       mkdir -p $SNAPCRAFT_PART_INSTALL/bin/
       cp -r * $SNAPCRAFT_PART_INSTALL/bin/
-
+      
+    override-pull: |
+      snapcraftctl pull
+      snapcraftctl set-version $(curl -s "http://www.efianalytics.com/MegaLogViewer/download/" | grep "tar.gz" | head -n1 | cut -d '"' -f2 | cut -d "_" -f2 | sed 's/v//' | sed 's/.tar.gz//')
+        
     build-packages:
       - wget
       - tar
+      - curl
+      - sed
 
     stage-packages:
       - openjdk-11-jdk
@@ -83,7 +90,7 @@ parts:
     
   cleanup:
     after:
-      - tool
+      - megalogviewer
       - launcher
     plugin: nil
     build-snaps:
