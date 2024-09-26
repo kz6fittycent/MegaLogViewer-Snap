@@ -1,4 +1,4 @@
-[![megalogviewer](https://snapcraft.io/megalogviewer/badge.svg)](https://snapcraft.io/megalogviewer)
+[![megalogviewer](https://snapcraft.io/megalogviewer/badge.svg)](https://snapcraft.io/megalogviewer)[![🧪 Snap Builds](https://github.com/kz6fittycent/MegaLogViewer-Snap/actions/workflows/test-snap-can-build.yml/badge.svg?branch=master)](https://github.com/kz6fittycent/MegaLogViewer-Snap/actions/workflows/test-snap-can-build.yml)[![Check for new releases](https://github.com/kz6fittycent/MegaLogViewer-Snap/actions/workflows/version_check.yml/badge.svg?branch=master)](https://github.com/kz6fittycent/MegaLogViewer-Snap/actions/workflows/version_check.yml)
 
 
 # MegaLogViewer MegaSquirt Edition
