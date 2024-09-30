@@ -10,13 +10,15 @@ description: |
   
   This is NOT an officially supported snap from EFI Analytics.
 
-base: core20
+base: core22
 grade: stable
 confinement: strict
 compression: lzo
-
-assumes:
-  - command-chain
+icon: snap/gui/megalogviewer.png
+contact: https://github.com/kz6fittycent/MegaLogViewer-Snap
+license: Proprietary
+website: http://www.efianalytics.com/MegaLogViewer
+issues: https://github.com/kz6fittycent/MegaLogViewer-Snap/issues
 
 architectures:
   - build-on: amd64
@@ -24,10 +26,8 @@ architectures:
 apps:
   megalogviewer:
     extensions:
-      - gnome-3-38
+      - gnome
     command: launch
-    command-chain:
-      - bin/homeishome-launch
     plugs:
       - home
       - removable-media
@@ -50,12 +50,12 @@ parts:
       wget -O megalogviewer.tar.gz http://www.efianalytics.com/MegaLogViewer/download/${TAR}
       tar -xzvf megalogviewer.tar.gz
       rm megalogviewer.tar.gz
-      mkdir -p $SNAPCRAFT_PART_INSTALL/bin/
-      cp -r * $SNAPCRAFT_PART_INSTALL/bin/
+      mkdir -p $CRAFT_PART_INSTALL/bin/
+      cp -r * $CRAFT_PART_INSTALL/bin/
       
     override-pull: |
-      snapcraftctl pull
-      snapcraftctl set-version $(curl -s "http://www.efianalytics.com/MegaLogViewer/download/" | grep "tar.gz" | head -n1 | cut -d '"' -f2 | cut -d "_" -f2 | sed 's/v//' | sed 's/.tar.gz//')
+      craftctl default
+      craftctl set version=$(curl -s "http://www.efianalytics.com/MegaLogViewer/download/" | grep "tar.gz" | head -n1 | cut -d '"' -f2 | cut -d "_" -f2 | sed 's/v//' | sed 's/.tar.gz//')
         
     build-packages:
       - wget
@@ -78,11 +78,6 @@ parts:
     stage:
     - -usr/lib/jvm/java-11-openjdk-*/lib/security/cacerts
     - -usr/lib/jvm/java-11-openjdk-*/lib/security/blacklisted.certs
-   
-  homeishome-launch:
-    plugin: nil
-    stage-snaps:
-      - homeishome-launch
 
   launcher:
     plugin: dump
@@ -94,5 +89,4 @@ parts:
       - launcher
     plugin: nil
     build-snaps:
-      - core20
-      - gnome-3-38-2004
+      - core22
