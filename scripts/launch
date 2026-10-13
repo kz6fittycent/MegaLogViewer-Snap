@@ -1,23 +1,34 @@
 #!/bin/sh
 
-# JAVA 
-export JAVA_HOME=$SNAP/usr/lib/jvm/java-1.11.0-openjdk-$SNAP_ARCH
+JAVA_VER=$(ls $SNAP/usr/lib/jvm/ | grep jdk | head -n 1)
+
+# JAVA
+export JAVA_HOME=$SNAP/usr/lib/jvm/$JAVA_VER
 export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
 
-# VARS
-LAST_PATH=`pwd -P`
-TARGET_FILE=$0
-TARGET_FILE=`basename $TARGET_FILE`
-PHYS_DIR=`pwd -P`
-BASE_PATH=$PHYS_DIR
+# BROWSER
+# MegaLogViewer only looks for named browsers (firefox, chrome, ...) on PATH;
+# $SNAP/browser/firefox forwards links to xdg-open (see that script).
+export PATH=$SNAP/browser:$PATH
+
+# HOME
+# Java takes user.home from the passwd entry (the real home), not $HOME. Strict
+# confinement blocks top-level dot-dirs there, so MegaLogViewer could not
+# create ~/.efiAnalytics ("Error saving user.properties"). Point Java at the
+# snap's home ($SNAP_USER_DATA) so preferences can be saved.
+JAVA_HOME_DIR="$SNAP_USER_DATA"
+REAL_HOME="${SNAP_REAL_HOME:-$(getent passwd "$(id -u)" | cut -d: -f6)}"
+
+# Keep the folders MegaLogViewer reads logs from pointing at the real home:
+# TunerStudio's projects (DataLogs) and Documents.
+for dir in TunerStudioProjects Documents; do
+	mkdir -p "$REAL_HOME/$dir"
+	if [ ! -e "$JAVA_HOME_DIR/$dir" ]; then
+		ln -s "$REAL_HOME/$dir" "$JAVA_HOME_DIR/$dir"
+	fi
+done
 
 # Execute
 cd $SNAP/bin/MegaLogViewer/
-java -Xms512m -Xmx2048m -jar MegaLogViewer.jar $1
-RESULT=$?
 
-if [ -d "$LAST_PATH" ]; then
-	cd "$LAST_PATH"
-fi
-
-exit $RESULT
+exec java -Duser.home="$JAVA_HOME_DIR" -Xms512m -Xmx2048m -Dfile.encoding=UTF8 -jar MegaLogViewer.jar "$@"

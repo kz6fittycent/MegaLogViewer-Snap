@@ -1,27 +1,34 @@
 name: megalogviewer
 adopt-info: megalogviewer
-summary: MegaLogViewer MegaSquirt Edition (UNOFFICIAL)
+title: MegaLogViewer
+summary: UNOFFICIAL - MegaLogViewer MegaSquirt Edition - data log viewer
 description: |
-  MegaLogViewer MegaSquirt Edition
-  
-  After installing, run the following commands:
-  
+  MegaLogViewer MegaSquirt Edition, the data log viewer and analysis tool
+  from EFI Analytics for MegaSquirt and TunerStudio data logs.
+
+  After installing, run the following command:
+
   sudo snap connect megalogviewer:removable-media
-  
+
   This is NOT an officially supported snap from EFI Analytics.
 
-base: core22
+base: core24
 grade: stable
 confinement: strict
 compression: lzo
 icon: snap/gui/megalogviewer.png
 contact: https://github.com/kz6fittycent/MegaLogViewer-Snap
+# "Proprietary" (capitalised) is what snap pack accepts; snapcraft suggests
+# lowercase "proprietary", but snapd rejects it as an unknown license.
 license: Proprietary
-website: http://www.efianalytics.com/MegaLogViewer
+website: https://www.efianalytics.com/MegaLogViewer/
 issues: https://github.com/kz6fittycent/MegaLogViewer-Snap/issues
+source-code: https://github.com/kz6fittycent/MegaLogViewer-Snap
 
-architectures:
-  - build-on: amd64
+platforms:
+  amd64:
+    build-on: [amd64]
+    build-for: [amd64]
 
 apps:
   megalogviewer:
@@ -37,56 +44,66 @@ apps:
       - desktop-legacy
       - network
     environment:
-      JAVA_HOME: $SNAP/usr/lib/jvm/java-11-openjdk-amd64
-      JRE_HOME: $SNAP/usr/lib/jvm/java-11-openjdk-amd64/jre
-      
+      JAVA_HOME: $SNAP/usr/lib/jvm/java-17-openjdk-amd64
+      JRE_HOME: $SNAP/usr/lib/jvm/java-17-openjdk-amd64/jre
+
 parts:
   megalogviewer:
     plugin: nil
-    override-build: |
-      TAR=$(curl -s "http://www.efianalytics.com/MegaLogViewer/download/" | grep "tar.gz" | head -n1 | cut -d '"' -f2)
-      mkdir -p BUILD
-      cd BUILD/
-      wget -O megalogviewer.tar.gz http://www.efianalytics.com/MegaLogViewer/download/${TAR}
-      tar -xzvf megalogviewer.tar.gz
-      rm megalogviewer.tar.gz
-      mkdir -p $CRAFT_PART_INSTALL/bin/
-      cp -r * $CRAFT_PART_INSTALL/bin/
-      
+    # Upstream has no stable "latest" URL, so the newest Linux tarball is
+    # discovered from the download page (see snap/local/megalogviewer-latest.sh).
     override-pull: |
-      craftctl default
-      craftctl set version=$(curl -s "http://www.efianalytics.com/MegaLogViewer/download/" | grep "tar.gz" | head -n1 | cut -d '"' -f2 | cut -d "_" -f2 | sed 's/v//' | sed 's/.tar.gz//')
-        
-    build-packages:
-      - wget
-      - tar
-      - curl
-      - sed
+      set -eu
+      LATEST=$(sh "$CRAFT_PROJECT_DIR/snap/local/megalogviewer-latest.sh")
+      VERSION=${LATEST%% *}
+      URL=${LATEST#* }
+      echo "Fetching MegaLogViewer $VERSION from $URL"
+      rm -rf MegaLogViewer megalogviewer.tar.gz
+      curl -fSL --retry 5 --retry-delay 5 -o megalogviewer.tar.gz "$URL"
+      gzip -t megalogviewer.tar.gz
+      tar -xzf megalogviewer.tar.gz
+      rm megalogviewer.tar.gz
+      test -f MegaLogViewer/MegaLogViewer.jar
+      craftctl set version="$VERSION"
 
+    override-build: |
+      mkdir -p "$CRAFT_PART_INSTALL/bin"
+      cp -r "$CRAFT_PART_SRC/MegaLogViewer" "$CRAFT_PART_INSTALL/bin/"
+
+    build-packages:
+      - ca-certificates
+      - curl
+      - gzip
+      - tar
+
+    # Same Java 17 runtime set as the TunerStudio snap (same vendor and
+    # toolkit), which is known to work on core24.
     stage-packages:
-      - openjdk-11-jdk
-      - openjdk-11-jre
+      - openjdk-17-jdk
+      - openjdk-17-jre
       - librxtx-java
       - fontconfig
       - fontconfig-config
       - libfontconfig1
       - x11-xserver-utils
-      - libgtk-3-dev 
+      - x11-utils
+      - libgtk-3-dev
       - ca-certificates-java
-      - ca-certificates          
+      - ca-certificates
 
     stage:
-    - -usr/lib/jvm/java-11-openjdk-*/lib/security/cacerts
-    - -usr/lib/jvm/java-11-openjdk-*/lib/security/blacklisted.certs
+    - -usr/lib/jvm/java-17-openjdk-*/lib/security/cacerts
+    - -usr/lib/jvm/java-17-openjdk-*/lib/security/blocked.certs
+    - -usr/lib/jvm/java-17-openjdk-amd64/jre/lib/security/cacerts
 
   launcher:
     plugin: dump
     source: scripts
-    
+
   cleanup:
     after:
       - megalogviewer
       - launcher
     plugin: nil
     build-snaps:
-      - core22
+      - core24

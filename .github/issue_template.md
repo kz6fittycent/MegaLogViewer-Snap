@@ -1,6 +1,6 @@
 ## Please follow the general troubleshooting steps first:
 
-- [ ] Try running `snap run tunerstudio`
+- [ ] Try running `snap run megalogviewer`
 - [ ] Refreshing the snap to ensure you have the latest `stable` version
 - [ ] Restart `snapd`
 
